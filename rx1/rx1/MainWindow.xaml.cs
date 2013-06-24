@@ -1,9 +1,13 @@
 ﻿namespace Rx1
 {
     using System;
+    using System.ComponentModel;
     using System.Diagnostics;
     using System.Reactive.Linq;
+    using System.Runtime.CompilerServices;
     using System.Windows;
+
+    using rx1.Annotations;
 
     public struct MagicEvent
     {
@@ -27,6 +31,38 @@
             this.killer = killer;
             this.killed = killed;
         }
+
+        public string Killed
+        {
+            get
+            {
+                return this.killed;
+            }
+        }
+
+        public string Killer
+        {
+            get
+            {
+                return this.killer;
+            }
+        }
+
+        public int Type
+        {
+            get
+            {
+                return this.type;
+            }
+        }
+
+        public DateTime Sent
+        {
+            get
+            {
+                return this.sent;
+            }
+        }
     }
 
 
@@ -35,24 +71,24 @@
     /// </summary>
     internal partial class MainWindow
     {
-        private IDisposable subscription;
-        private IObservable<MagicEvent> push;
+        //private readonly IObservable<MagicEvent> push;
         private static readonly Random R = new Random(12345);
+        private static readonly string[] Users = new[] { "Rob", "Jeff", "Jason", "Mike", "Scott", "Eduard" };
+        private static bool _isPushEnabled;
+
+        internal readonly StatsProcessor viewModel;
 
         public MainWindow()
         {
             InitializeComponent();
+            this.viewModel = new StatsProcessor(Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromMilliseconds(5)).Where(_ => _isPushEnabled).Select(GenerateEvent));
+            this.DataContext = viewModel;
         }
 
         private void PubButton_Checked(object sender, RoutedEventArgs e)
         {
-            this.push = this.PubButton.IsChecked.IsTrue()
-                            ? Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromMilliseconds(5)).Select(GenerateEvent)
-                            : Observable.Timer(TimeSpan.MaxValue).Select(GenerateEvent);
+            _isPushEnabled = !_isPushEnabled;
         }
-
-        private static readonly string[] Users = new[] { "Rob", "Jeff", "Jason", "Mike", "Scott", "Eduard" };
-
 
         public static MagicEvent GenerateEvent(long id)
         {
@@ -62,24 +98,68 @@
 
         private void SubButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (this.subscription != null)
-            {
-                this.subscription.Dispose();
-                this.subscription = null;
-            }
+            //if (this.subscription != null)
+            //{
+            //    this.subscription.Dispose();
+            //    this.subscription = null;
+            //}
 
-            if (this.SubButton.IsChecked.IsTrue() && this.push != null)
-            {
-                this.subscription = this.push.Subscribe(new StatsProcessor().ProcessEvent);
-            }
+            //if (this.SubButton.IsChecked.IsTrue() && this.push != null)
+            //{
+            //    //this.subscription = this.push.Subscribe(viewModel.ProcessEvent);
+            //}
         }
     }
 
-    public class StatsProcessor
+    public class StatsProcessor : INotifyPropertyChanged, IDisposable
     {
-        public void ProcessEvent(MagicEvent e)
+        private readonly IObservable<MagicEvent> _eventStream;
+
+        public StatsProcessor(IObservable<MagicEvent> eventStream)
         {
-            Debug.WriteLine("Event");
+            this._eventStream = eventStream;
+            this._eventStream.Where(e => e.Killed != e.Killer).Subscribe(e => { Kills++; });
+            this._eventStream.Where(e => e.Killed == e.Killer).Subscribe(e => { Suicides++; });
+        }
+
+        private uint _kills;
+        private uint _suicides;
+        public uint Kills
+        {
+            get { return _kills; }
+            set
+            {
+                _kills = value; 
+                if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Kills"));
+            }
+        }
+        public uint Suicides
+        {
+            get
+            {
+                return _suicides;
+            }
+            set
+            {
+                _suicides = value;
+                if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Suicides"));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        public void Dispose()
+        {
         }
     }
     

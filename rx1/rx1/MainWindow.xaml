@@ -1,6 +1,6 @@
 ﻿<Window x:Class="Rx1.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
         Title="MainWindow" Height="350" Width="525" x:ClassModifier="internal">
     <Border Padding="10">
         <Grid>
@@ -8,8 +8,17 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
             <ToggleButton x:Name="PubButton" Content="Pub" Checked="PubButton_Checked" Unchecked="PubButton_Checked" />
-            <ToggleButton x:Name="SubButton" Content="Sub" Grid.Column="1" Checked="SubButton_Checked" Unchecked="SubButton_Checked"/>
+            <ToggleButton x:Name="SubButton" Content="Sub" Grid.Column="1" Checked="SubButton_Checked" Unchecked="SubButton_Checked" Visibility="Hidden"/>
+            <Label Content="Kills" Grid.Row="1"/>
+            <Label Content="{Binding Kills}" Grid.Row="1" Grid.Column="1"/>
+            <Label Content="Suicides" Grid.Row="2"/>
+            <Label Content="{Binding Suicides}" Grid.Row="2" Grid.Column="1"/>
         </Grid>
     </Border>
 </Window>
