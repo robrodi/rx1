@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.Reactive.Linq;
     using System.Runtime.CompilerServices;
+    using System.Threading;
     using System.Windows;
 
     using rx1.Annotations;
@@ -81,7 +82,10 @@
         public MainWindow()
         {
             InitializeComponent();
-            this.viewModel = new StatsProcessor(Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromMilliseconds(5)).Where(_ => _isPushEnabled).Select(GenerateEvent));
+
+            var eventStream = Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromMilliseconds(100)).Where(_ => _isPushEnabled).Select(i => GenerateEvent(i));
+            this.viewModel = new StatsProcessor(eventStream);
+            eventStream.Subscribe(viewModel);
             this.DataContext = viewModel;
         }
 
@@ -90,8 +94,11 @@
             _isPushEnabled = !_isPushEnabled;
         }
 
-        public static MagicEvent GenerateEvent(long id)
+        public static int generated;
+        public MagicEvent GenerateEvent(long id)
         {
+            generated++;
+            Dispatcher.Invoke(() => { this.Generated.Content = generated.ToString(); });
             Func<string> randomUser = () => Users[R.Next(Users.Length)];
             return new MagicEvent((int)id, randomUser(), randomUser());
         }
@@ -111,38 +118,48 @@
         }
     }
 
-    public class StatsProcessor : INotifyPropertyChanged, IDisposable
+    public class StatsProcessor : INotifyPropertyChanged, IDisposable, IObserver<MagicEvent>
     {
         private readonly IObservable<MagicEvent> _eventStream;
 
         public StatsProcessor(IObservable<MagicEvent> eventStream)
         {
-            this._eventStream = eventStream;
-            this._eventStream.Where(e => e.Killed != e.Killer).Subscribe(e => { Kills++; });
-            this._eventStream.Where(e => e.Killed == e.Killer).Subscribe(e => { Suicides++; });
+            //this._eventStream = eventStream;
+            //this._eventStream.Subscribe(e => this.IncrementEvents());
+            //this._eventStream.Where(e => e.Killed != e.Killer).Subscribe(e => this.IncrementKills());
+            //this._eventStream.Where(e => e.Killed == e.Killer).Subscribe(e => this.IncrementSuicides());
         }
 
-        private uint _kills;
-        private uint _suicides;
-        public uint Kills
+        private void IncrementEvents()
+        {
+            int eventCount = Interlocked.Increment(ref _events);
+            if (eventCount % 100 == 0)
+                Debug.Write(eventCount);
+        }
+
+        private int _kills, _suicides, _events;
+
+        private void IncrementKills()
+        {
+            Interlocked.Increment(ref _kills);
+            if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Kills"));
+        }
+        private void IncrementSuicides()
+        {
+            Interlocked.Increment(ref _suicides);
+            if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Suicides"));
+        }
+
+        public int Kills
         {
             get { return _kills; }
-            set
-            {
-                _kills = value; 
-                if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Kills"));
-            }
         }
-        public uint Suicides
+
+        public int Suicides
         {
             get
             {
                 return _suicides;
-            }
-            set
-            {
-                _suicides = value;
-                if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("Suicides"));
             }
         }
 
@@ -160,6 +177,20 @@
 
         public void Dispose()
         {
+        }
+
+        public void OnNext(MagicEvent value)
+        {
+            this.IncrementKills();
+        }
+
+        public void OnError(Exception error)
+        {
+        }
+
+        public void OnCompleted()
+        {
+            Debug.WriteLine("!");
         }
     }
     

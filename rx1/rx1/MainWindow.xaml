@@ -12,6 +12,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <ToggleButton x:Name="PubButton" Content="Pub" Checked="PubButton_Checked" Unchecked="PubButton_Checked" />
             <ToggleButton x:Name="SubButton" Content="Sub" Grid.Column="1" Checked="SubButton_Checked" Unchecked="SubButton_Checked" Visibility="Hidden"/>
@@ -19,6 +20,8 @@
             <Label Content="{Binding Kills}" Grid.Row="1" Grid.Column="1"/>
             <Label Content="Suicides" Grid.Row="2"/>
             <Label Content="{Binding Suicides}" Grid.Row="2" Grid.Column="1"/>
+            <Label Content="Generated" Grid.Row="3"/>
+            <Label x:Name="Generated" Grid.Row="3" Grid.Column="1"/>
         </Grid>
     </Border>
 </Window>
