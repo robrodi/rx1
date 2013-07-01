@@ -2,16 +2,23 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Reactive.Linq;
 
-    public class Counter : Dictionary<int, int>
+    public class ScanningCounter : Dictionary<int, int>, IDisposable
     {
-        public Counter(IObservable<MagicEvent> eventStream, Func<MagicEvent, int> keySelector)
+        private IDisposable outer, inner;
+        public ScanningCounter(IObservable<MagicEvent> eventStream, Func<MagicEvent, int> keySelector)
         {
-            eventStream.GroupBy(keySelector).Subscribe(whatever => whatever.Scan(0, (i, @event) => i + 1).Do(kills => this[whatever.Key] = kills).Subscribe());
+            outer = eventStream.GroupBy(keySelector).Subscribe(whatever => inner = whatever.Scan(0, (i, @event) => i + 1).Do(kills => this[whatever.Key] = kills).Subscribe());
+        }
+
+        public void Dispose()
+        {
+            if (outer != null) outer.Dispose();
+            if (inner != null) inner.Dispose();
         }
     }
+
 
     public class StatsProcessorObservable : StatsProcessorBase, IDisposable
     {
@@ -30,8 +37,8 @@
             this.EventStream.Where(e => e.Victim == e.Killer).Subscribe(e => this.IncrementSuicides());
 
             // Sum Kills / player
-            playerKillCounts = new Counter(eventStream, e => e.Killer);
-            playerDeathCounts = new Counter(eventStream, e => e.Victim);
+            playerKillCounts = new ScanningCounter(eventStream, e => e.Killer);
+            playerDeathCounts = new ScanningCounter(eventStream, e => e.Victim);
         }
 
         public IDictionary<int, int> PlayerKillCounts
@@ -54,30 +61,6 @@
         {
             foreach (var subscription in subscriptions)
                 subscription.Dispose();
-        }
-    }
-
-    [Obsolete]
-    public class StatsProcessorObserver : StatsProcessorBase, IObserver<MagicEvent>
-    {
-        public StatsProcessorObserver(IObservable<MagicEvent> eventStream)
-            : base(eventStream)
-        {
-            this.EventStream.Subscribe(this);
-        }
-        public void OnNext(MagicEvent value)
-        {
-            Action action = value.Victim != value.Killer ? (Action)this.IncrementKills : (Action)this.IncrementSuicides;
-            action.Invoke();
-        }
-
-        public void OnError(Exception error)
-        {
-        }
-
-        public void OnCompleted()
-        {
-            Debug.WriteLine("!");
         }
     }
 }

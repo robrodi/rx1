@@ -14,7 +14,7 @@
         public MainWindow()
         {
             InitializeComponent();
-            this.viewModel = new StatsProcessorObserver(this.State.Kills);
+            this.viewModel = new StatsProcessorObservable(this.State.Kills);
             this.DataContext = viewModel;
         }
 
