@@ -25,7 +25,7 @@
             this.killed = killed;
         }
 
-        public int Killed
+        public int Victim
         {
             get
             {

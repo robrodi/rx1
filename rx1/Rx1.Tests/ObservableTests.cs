@@ -22,8 +22,8 @@
             // Arrange
             const int events = 1000;
             var oneThousandRandomEvents = Enumerable.Range(0, events).Select(_ => GameState.GenerateEvent(_)).ToArray();
-            var numKills = oneThousandRandomEvents.Where(e => e.Killed != e.Killer).Count();
-            var numSuicides = oneThousandRandomEvents.Where(e => e.Killed == e.Killer).Count();
+            var numKills = oneThousandRandomEvents.Where(e => e.Victim != e.Killer).Count();
+            var numSuicides = oneThousandRandomEvents.Where(e => e.Victim == e.Killer).Count();
 
             // Act
             using (var processor = new StatsProcessorObservable(oneThousandRandomEvents.ToObservable()))
@@ -38,17 +38,21 @@
         }
 
         [TestMethod]
-        [Owner("a")]
-        public void name()
+        [Owner("robrodi")]
+        public void KillsByPlayer()
         {
-            // Arrange
-            var expected = 1;
-
+            const int events = 1000;
+            var oneThousandRandomEvents = Enumerable.Range(0, events).Select(_ => GameState.GenerateEvent(_)).ToArray();
+            var expectPlayer0Kills = oneThousandRandomEvents.Count(e => e.Killer == 0);
+            var expectPlayer0Deaths = oneThousandRandomEvents.Count(e => e.Victim == 0);
+            
             // Act
-            var actual = 2;
-
-            // Assert
-            Assert.Inconclusive("NYI");
+            using (var processor = new StatsProcessorObservable(oneThousandRandomEvents.ToObservable()))
+            {
+                // Assert
+                Assert.AreEqual(expectPlayer0Deaths, processor.PlayerDeathCounts[0], "Deaths");
+                Assert.AreEqual(expectPlayer0Kills, processor.PlayerKillCounts[0], "Kills");
+            }
         }
     }
 }

@@ -9,17 +9,35 @@
     {
         private readonly ICollection<IDisposable> subscriptions = new List<IDisposable>();
         private readonly IDictionary<int, int> playerKillCounts = new Dictionary<int, int>();
+        private readonly IDictionary<int, int> playerDeathCounts = new Dictionary<int, int>();
 
         public StatsProcessorObservable(IObservable<MagicEvent> eventStream)
             : base(eventStream)
         {
             subscriptions.Add(this.EventStream.Subscribe(e => this.IncrementEvents()));
-            subscriptions.Add(this.EventStream.Where(e => e.Killed != e.Killer).Subscribe(e => this.IncrementKills()));
-            subscriptions.Add(this.EventStream.Where(e => e.Killed == e.Killer).Subscribe(e => this.IncrementSuicides()));
+            subscriptions.Add(this.EventStream.Where(e => e.Victim != e.Killer).Subscribe(e => this.IncrementKills()));
+            subscriptions.Add(this.EventStream.Where(e => e.Victim == e.Killer).Subscribe(e => this.IncrementSuicides()));
 
-            IObservable<IGroupedObservable<int, MagicEvent>> byPlayer = this.EventStream.GroupBy(e => e.Killer);
+            IObservable<IGroupedObservable<int, MagicEvent>> byKiller = this.EventStream.GroupBy(e => e.Killer);
+            byKiller.Subscribe(player => player.Scan(0, (i, @event) => i + 1).Do(kills => this.PlayerKillCounts[player.Key] = kills).Subscribe());
+            IObservable<IGroupedObservable<int, MagicEvent>> byVictim = this.EventStream.GroupBy(e => e.Victim);
+            byVictim.Subscribe(player => player.Scan(0, (i, @event) => i + 1).Do(kills => this.PlayerDeathCounts[player.Key] = kills).Subscribe());
+        }
 
-            byPlayer.Subscribe(player => player.Scan(0, (i, @event) => i + 1).Do(kills => playerKillCounts[player.Key] = kills).Subscribe());
+        public IDictionary<int, int> PlayerKillCounts
+        {
+            get
+            {
+                return this.playerKillCounts;
+            }
+        }
+
+        public IDictionary<int, int> PlayerDeathCounts
+        {
+            get
+            {
+                return this.playerDeathCounts;
+            }
         }
 
         public void Dispose()
@@ -39,7 +57,7 @@
         }
         public void OnNext(MagicEvent value)
         {
-            Action action = value.Killed != value.Killer ? (Action)this.IncrementKills : (Action)this.IncrementSuicides;
+            Action action = value.Victim != value.Killer ? (Action)this.IncrementKills : (Action)this.IncrementSuicides;
             action.Invoke();
         }
 
