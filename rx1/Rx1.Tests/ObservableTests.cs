@@ -1,6 +1,5 @@
 ﻿namespace Rx1.Tests
 {
-    using System;
     using System.Diagnostics;
     using System.Linq;
     using System.Reactive.Linq;
@@ -21,7 +20,7 @@
         public void FirstTest()
         {
             // Arrange
-            var events = (int)Math.Pow(10, 5);
+            const int events = 1000;
             var oneThousandRandomEvents = Enumerable.Range(0, events).Select(_ => GameState.GenerateEvent(_)).ToArray();
             var numKills = oneThousandRandomEvents.Where(e => e.Killed != e.Killer).Count();
             var numSuicides = oneThousandRandomEvents.Where(e => e.Killed == e.Killer).Count();
