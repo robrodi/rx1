@@ -14,12 +14,13 @@
         public StatsProcessorObservable(IObservable<MagicEvent> eventStream)
             : base(eventStream)
         {
-            subscriptions.Add(this.EventStream.Subscribe(e => this.IncrementEvents()));
-            subscriptions.Add(this.EventStream.Where(e => e.Victim != e.Killer).Subscribe(e => this.IncrementKills()));
-            subscriptions.Add(this.EventStream.Where(e => e.Victim == e.Killer).Subscribe(e => this.IncrementSuicides()));
+            this.EventStream.Subscribe(e => this.IncrementEvents());
+            this.EventStream.Where(e => e.Victim != e.Killer).Subscribe(e => this.IncrementKills());
+            this.EventStream.Where(e => e.Victim == e.Killer).Subscribe(e => this.IncrementSuicides());
 
             IObservable<IGroupedObservable<int, MagicEvent>> byKiller = this.EventStream.GroupBy(e => e.Killer);
             byKiller.Subscribe(player => player.Scan(0, (i, @event) => i + 1).Do(kills => this.PlayerKillCounts[player.Key] = kills).Subscribe());
+
             IObservable<IGroupedObservable<int, MagicEvent>> byVictim = this.EventStream.GroupBy(e => e.Victim);
             byVictim.Subscribe(player => player.Scan(0, (i, @event) => i + 1).Do(kills => this.PlayerDeathCounts[player.Key] = kills).Subscribe());
         }
