@@ -36,5 +36,19 @@
                 Assert.AreEqual(numSuicides, processor.Suicides, "Suicides");
             }
         }
+
+        [TestMethod]
+        [Owner("a")]
+        public void name()
+        {
+            // Arrange
+            var expected = 1;
+
+            // Act
+            var actual = 2;
+
+            // Assert
+            Assert.Inconclusive("NYI");
+        }
     }
 }
