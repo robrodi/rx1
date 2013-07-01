@@ -7,10 +7,11 @@
     public class GameState
     {
         private static readonly Random R = new Random(12345);
-        private static readonly string[] Users = new[] { "Rob", "Jeff", "Jason", "Mike", "Scott", "Eduard" };
+
+        private const int NumberUsers = 8;
 
         private Timer timer;
-        private static readonly Func<string> RandomUser = () => Users[R.Next(Users.Length)];
+        private static readonly Func<int> RandomUser = () => R.Next(NumberUsers);
         public delegate void MagicEventHandler(object sender, MagicEvent e);
         public event MagicEventHandler OnKill;
         public IObservable<MagicEvent> Kills { get; set; }

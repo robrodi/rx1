@@ -8,16 +8,16 @@
 
         private readonly int type;
 
-        private readonly string killer;
+        private readonly int killer;
 
-        private readonly string killed;
+        private readonly int killed;
 
-        public MagicEvent(int type, string killer, string killed)
+        public MagicEvent(int type, int killer, int killed)
             : this(DateTime.UtcNow, type, killer, killed)
         {
         }
 
-        public MagicEvent(DateTime sent, int type, string killer, string killed)
+        public MagicEvent(DateTime sent, int type, int killer, int killed)
         {
             this.sent = sent;
             this.type = type;
@@ -25,7 +25,7 @@
             this.killed = killed;
         }
 
-        public string Killed
+        public int Killed
         {
             get
             {
@@ -33,7 +33,7 @@
             }
         }
 
-        public string Killer
+        public int Killer
         {
             get
             {
