@@ -15,7 +15,10 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <ToggleButton x:Name="PubButton" Content="Pub" Checked="PubButton_Checked" Unchecked="PubButton_Checked" />
-            <ToggleButton x:Name="SubButton" Content="Sub" Grid.Column="1" Checked="SubButton_Checked" Unchecked="SubButton_Checked" Visibility="Hidden"/>
+            <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Stretch" >
+                <TextBox x:Name="EventsPerSecond" Text="100" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Width="100"/>
+                <Label Content="/ second"/>
+            </StackPanel>
             <Label Content="Kills" Grid.Row="1"/>
             <Label Content="{Binding Kills}" Grid.Row="1" Grid.Column="1"/>
             <Label Content="Suicides" Grid.Row="2"/>
