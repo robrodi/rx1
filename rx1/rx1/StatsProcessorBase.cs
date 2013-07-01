@@ -42,13 +42,13 @@
             }
         }
 
+        public int TotalEvents { get { return this.events; } }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void IncrementEvents()
         {
-            int eventCount = Interlocked.Increment(ref this.events);
-            if (eventCount % 100 == 0)
-                Debug.Write(eventCount);
+            Interlocked.Increment(ref this.events);
         }
         protected void IncrementKills()
         {
@@ -69,6 +69,5 @@
                 handler(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-        
     }
 }

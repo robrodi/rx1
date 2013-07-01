@@ -31,7 +31,7 @@
             this.timer = new Timer(_ => this.GenerateAndFireKill(), null, 0, 1000 / rps);
         }
 
-        private static MagicEvent GenerateEvent(long id)
+        public static MagicEvent GenerateEvent(long id)
         {
             return new MagicEvent((int)id, RandomUser(), RandomUser());
         }

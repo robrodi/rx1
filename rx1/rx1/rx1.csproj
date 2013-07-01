@@ -68,7 +68,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="MagicEvent.cs" />
-    <Compile Include="StatsProcesserObservable.cs" />
+    <Compile Include="StatsProcessorObservable.cs" />
     <Compile Include="StatsProcessorBase.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
