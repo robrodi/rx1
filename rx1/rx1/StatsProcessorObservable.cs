@@ -9,7 +9,7 @@
         private IDisposable outer, inner;
         public ScanningCounter(IObservable<MagicEvent> eventStream, Func<MagicEvent, int> keySelector)
         {
-            outer = eventStream.GroupBy(keySelector).Subscribe(whatever => inner = whatever.Scan(0, (i, @event) => i + 1).Do(kills => this[whatever.Key] = kills).Subscribe());
+            outer = eventStream.GroupBy(keySelector).Subscribe(group => inner = group.Scan(0, (i, @event) => i + 1).Do(kills => this[group.Key] = kills).Subscribe());
         }
 
         public void Dispose()

@@ -20,7 +20,7 @@
         public void FirstTest()
         {
             // Arrange
-            const int events = 1000;
+            const int events = 10000;
             var oneThousandRandomEvents = Enumerable.Range(0, events).Select(_ => GameState.GenerateEvent(_)).ToArray();
             var numKills = oneThousandRandomEvents.Where(e => e.Victim != e.Killer).Count();
             var numSuicides = oneThousandRandomEvents.Where(e => e.Victim == e.Killer).Count();
@@ -41,7 +41,7 @@
         [Owner("robrodi")]
         public void KillsByPlayer()
         {
-            const int events = 1000;
+            const int events = 10000;
             var oneThousandRandomEvents = Enumerable.Range(0, events).Select(_ => GameState.GenerateEvent(_)).ToArray();
             var expectPlayer0Kills = oneThousandRandomEvents.Count(e => e.Killer == 0);
             var expectPlayer0Deaths = oneThousandRandomEvents.Count(e => e.Victim == 0);
