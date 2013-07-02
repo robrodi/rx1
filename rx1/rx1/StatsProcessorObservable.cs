@@ -26,6 +26,7 @@
 
         private readonly IDictionary<int, int> playerKillCounts;
         private readonly IDictionary<int, int> playerDeathCounts;
+        private readonly IDictionary<bool, int> killsAndSuicides;
 
         public StatsProcessorObservable(IObservable<MagicEvent> eventStream)
             : base(eventStream)
@@ -33,8 +34,7 @@
             this.EventStream.Subscribe(e => this.IncrementEvents());
             
             // Sum Kills
-            this.EventStream.Where(e => e.Victim != e.Killer).Subscribe(e => this.IncrementKills());
-            this.EventStream.Where(e => e.Victim == e.Killer).Subscribe(e => this.IncrementSuicides());
+            this.killsAndSuicides = new ScanningCounter<bool>(eventStream, e => e.Killer != e.Victim);
 
             // Sum Kills / player
             playerKillCounts = new ScanningCounter<int>(eventStream, e => e.Killer);
@@ -56,6 +56,24 @@
                 return this.playerDeathCounts;
             }
         }
+
+        public IDictionary<bool, int> KillsAndSuicides
+        {
+            get
+            {
+                return this.killsAndSuicides;
+            }
+        }
+
+        public int Kills
+        {
+            get
+            {
+                return killsAndSuicides[true];
+            }
+        }
+
+        public int Suicides { get { return killsAndSuicides[false]; } }
 
         public void Dispose()
         {

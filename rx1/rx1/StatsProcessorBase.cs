@@ -1,7 +1,6 @@
 ﻿namespace Rx1
 {
     using System;
-    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
     using System.Threading;
@@ -12,7 +11,7 @@
     {
         protected readonly IObservable<MagicEvent> EventStream;
 
-        private int kills, suicides, events, eventsPerSecond;
+        private int events, eventsPerSecond;
 
         protected StatsProcessorBase(IObservable<MagicEvent> eventStream)
         {
@@ -30,17 +29,6 @@
                 if (this.PropertyChanged != null) this.PropertyChanged(this, new PropertyChangedEventArgs("EventsPerSecond"));
             }
         }
-        public int Kills
-        {
-            get { return this.kills; }
-        }
-        public int Suicides
-        {
-            get
-            {
-                return this.suicides;
-            }
-        }
 
         public int TotalEvents { get { return this.events; } }
 
@@ -50,16 +38,7 @@
         {
             Interlocked.Increment(ref this.events);
         }
-        protected void IncrementKills()
-        {
-            Interlocked.Increment(ref this.kills);
-            if (this.PropertyChanged != null) this.PropertyChanged(this, new PropertyChangedEventArgs("Kills"));
-        }
-        protected void IncrementSuicides()
-        {
-            Interlocked.Increment(ref this.suicides);
-            if (this.PropertyChanged != null) this.PropertyChanged(this, new PropertyChangedEventArgs("Suicides"));
-        }
+        
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
