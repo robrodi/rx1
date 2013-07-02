@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Reactive.Linq;
 
-    public class ScanningCounter : Dictionary<int, int>, IDisposable
+    public class ScanningCounter<TKey> : Dictionary<TKey, int>, IDisposable
     {
         private IDisposable outer, inner;
-        public ScanningCounter(IObservable<MagicEvent> eventStream, Func<MagicEvent, int> keySelector)
+        public ScanningCounter(IObservable<MagicEvent> eventStream, Func<MagicEvent, TKey> keySelector)
         {
             outer = eventStream.GroupBy(keySelector).Subscribe(group => inner = group.Scan(0, (i, @event) => i + 1).Do(kills => this[group.Key] = kills).Subscribe());
         }
@@ -37,8 +37,8 @@
             this.EventStream.Where(e => e.Victim == e.Killer).Subscribe(e => this.IncrementSuicides());
 
             // Sum Kills / player
-            playerKillCounts = new ScanningCounter(eventStream, e => e.Killer);
-            playerDeathCounts = new ScanningCounter(eventStream, e => e.Victim);
+            playerKillCounts = new ScanningCounter<int>(eventStream, e => e.Killer);
+            playerDeathCounts = new ScanningCounter<int>(eventStream, e => e.Victim);
         }
 
         public IDictionary<int, int> PlayerKillCounts
