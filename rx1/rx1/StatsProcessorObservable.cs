@@ -9,7 +9,8 @@
         private IDisposable outer, inner;
         public ScanningCounter(IObservable<MagicEvent> eventStream, Func<MagicEvent, TKey> keySelector)
         {
-            outer = eventStream.GroupBy(keySelector).Subscribe(group => inner = group.Scan(0, (i, @event) => i + 1).Do(kills => this[group.Key] = kills).Subscribe());
+            Func<int, MagicEvent, int> countEvents = (i, @event) => i + 1;
+            outer = eventStream.GroupBy(keySelector).Subscribe(group => inner = group.Scan(0, countEvents).Do(kills => this[group.Key] = kills).Subscribe());
         }
 
         public void Dispose()
@@ -24,10 +25,6 @@
     {
         private readonly ICollection<IDisposable> subscriptions = new List<IDisposable>();
 
-        private readonly IDictionary<int, int> playerKillCounts;
-        private readonly IDictionary<int, int> playerDeathCounts;
-        private readonly IDictionary<bool, int> killsAndSuicides;
-
         public StatsProcessorObservable(IObservable<MagicEvent> eventStream)
             : base(eventStream)
         {
@@ -41,6 +38,7 @@
             playerDeathCounts = new ScanningCounter<int>(eventStream, e => e.Victim);
         }
 
+        private readonly IDictionary<int, int> playerKillCounts;
         public IDictionary<int, int> PlayerKillCounts
         {
             get
@@ -49,6 +47,7 @@
             }
         }
 
+        private readonly IDictionary<int, int> playerDeathCounts;
         public IDictionary<int, int> PlayerDeathCounts
         {
             get
@@ -57,14 +56,7 @@
             }
         }
 
-        public IDictionary<bool, int> KillsAndSuicides
-        {
-            get
-            {
-                return this.killsAndSuicides;
-            }
-        }
-
+        private readonly IDictionary<bool, int> killsAndSuicides;
         public int Kills
         {
             get
@@ -72,7 +64,6 @@
                 return killsAndSuicides[true];
             }
         }
-
         public int Suicides { get { return killsAndSuicides[false]; } }
 
         public void Dispose()
